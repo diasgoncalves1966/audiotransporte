@@ -1,69 +1,156 @@
-import Image from "next/image";
+"use client";
+
+import { FormEvent, useState } from "react";
 
 export default function Home() {
+  const [url, setUrl] = useState("");
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (!url.trim()) {
+      return;
+    }
+
+    console.log("Link introduzido:", url);
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert h-5 w-[100px]"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the{" "}
-            <code className="rounded bg-black/[.06] px-1.5 py-0.5 font-mono text-[0.9em] dark:bg-white/[.08]">
-              page.tsx
-            </code>{" "}
-            file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+    <main className="min-h-screen bg-[#121212] px-5 pb-28 text-white">
+      <div className="mx-auto max-w-md">
+        <header className="flex items-center gap-3 py-7">
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#FF7A00] text-2xl font-bold text-black">
+            A
+          </div>
+
+          <div>
+            <h1 className="text-xl font-bold tracking-tight">
+              AudioTransporte
+            </h1>
+
+            <p className="text-sm text-neutral-400">
+              Uma ligação. Todas as plataformas.
+            </p>
+          </div>
+        </header>
+
+        <section className="rounded-3xl border border-neutral-800 bg-[#1E1E1E] p-5 shadow-2xl shadow-black/30">
+          <span className="inline-flex rounded-full bg-[#FF7A00]/15 px-3 py-1 text-xs font-semibold text-[#FF9B3D]">
+            Partilha sem limites
+          </span>
+
+          <h2 className="mt-5 text-3xl font-bold leading-tight">
+            Cola um link.
+            <br />
+            Nós encontramos o resto.
+          </h2>
+
+          <p className="mt-3 text-sm leading-6 text-neutral-400">
+            Spotify, TIDAL, YouTube Music, Apple Music, Amazon Music e outros
+            serviços.
           </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert h-[14px] w-4"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={14}
+
+          <form className="mt-6 space-y-3" onSubmit={handleSubmit}>
+            <label htmlFor="music-url" className="sr-only">
+              Link da música ou álbum
+            </label>
+
+            <input
+              id="music-url"
+              type="url"
+              value={url}
+              onChange={(event) => setUrl(event.target.value)}
+              placeholder="https://tidal.com/..."
+              className="h-14 w-full rounded-2xl border border-neutral-700 bg-[#121212] px-4 text-base text-white outline-none transition placeholder:text-neutral-600 focus:border-[#FF7A00] focus:ring-4 focus:ring-[#FF7A00]/10"
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+
+            <button
+              type="submit"
+              className="h-14 w-full rounded-2xl bg-[#FF7A00] text-base font-bold text-black transition active:scale-[0.98]"
+            >
+              Encontrar plataformas
+            </button>
+          </form>
+        </section>
+
+        <section className="mt-8">
+          <div className="mb-4 flex items-center justify-between">
+            <h2 className="text-lg font-bold">Como funciona</h2>
+
+            <span className="text-xs text-neutral-500">3 passos</span>
+          </div>
+
+          <div className="space-y-3">
+            <article className="flex items-center gap-4 rounded-2xl bg-[#1E1E1E] p-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#FF7A00]/15 font-bold text-[#FF9B3D]">
+                1
+              </div>
+
+              <div>
+                <h3 className="font-semibold">Cola um link</h3>
+                <p className="text-sm text-neutral-400">
+                  De qualquer plataforma suportada.
+                </p>
+              </div>
+            </article>
+
+            <article className="flex items-center gap-4 rounded-2xl bg-[#1E1E1E] p-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#FF7A00]/15 font-bold text-[#FF9B3D]">
+                2
+              </div>
+
+              <div>
+                <h3 className="font-semibold">Encontramos equivalentes</h3>
+                <p className="text-sm text-neutral-400">
+                  Procuramos a mesma música noutros serviços.
+                </p>
+              </div>
+            </article>
+
+            <article className="flex items-center gap-4 rounded-2xl bg-[#1E1E1E] p-4">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#FF7A00]/15 font-bold text-[#FF9B3D]">
+                3
+              </div>
+
+              <div>
+                <h3 className="font-semibold">Partilha com todos</h3>
+                <p className="text-sm text-neutral-400">
+                  Cada pessoa escolhe a sua plataforma.
+                </p>
+              </div>
+            </article>
+          </div>
+        </section>
+      </div>
+
+      <nav className="fixed bottom-0 left-0 right-0 border-t border-neutral-800 bg-[#181818]/95 px-5 py-3 backdrop-blur">
+        <div className="mx-auto flex max-w-md items-center justify-around">
+          <button className="flex flex-col items-center gap-1 text-[#FF7A00]">
+            <span className="text-xl">⌂</span>
+            <span className="text-xs font-medium">Início</span>
+          </button>
+
+          <button className="flex flex-col items-center gap-1 text-neutral-500">
+            <span className="text-xl">⌕</span>
+            <span className="text-xs font-medium">Explorar</span>
+          </button>
+
+          <button className="flex flex-col items-center gap-1 text-neutral-500">
+            <span className="text-xl">＋</span>
+            <span className="text-xs font-medium">Adicionar</span>
+          </button>
+
+          <button className="flex flex-col items-center gap-1 text-neutral-500">
+            <span className="text-xl">♡</span>
+            <span className="text-xs font-medium">Favoritos</span>
+          </button>
+
+          <button className="flex flex-col items-center gap-1 text-neutral-500">
+            <span className="text-xl">○</span>
+            <span className="text-xs font-medium">Perfil</span>
+          </button>
         </div>
-      </main>
-    </div>
+      </nav>
+    </main>
   );
 }
