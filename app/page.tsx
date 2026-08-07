@@ -11,10 +11,21 @@ type Metadata = {
   providerName: string;
 };
 
+type PlatformMatch = {
+  platform: string;
+  title: string;
+  artist: string;
+  album: string;
+  url: string;
+  thumbnailUrl: string;
+  score: number;
+};
+
 type LinkResult = {
   platform: string;
   url: string;
   metadata?: Metadata | null;
+  matches: PlatformMatch[];
 };
 
 type ResolveResponse = {
@@ -22,6 +33,7 @@ type ResolveResponse = {
   platform?: string;
   url?: string;
   metadata?: Metadata | null;
+  matches?: PlatformMatch[];
   error?: string;
 };
 
@@ -64,13 +76,12 @@ export default function Home() {
     }
 
     // MODO MENSAGEM
-    // Não faz qualquer pesquisa.
     if (mode === "message") {
       setMessageResult(cleanInput);
       return;
     }
 
-    // VALIDAR URL NO FRONTEND
+    // VALIDAR URL
     try {
       new URL(cleanInput);
     } catch {
@@ -78,7 +89,7 @@ export default function Home() {
       return;
     }
 
-    // ENVIAR O LINK PARA A NOSSA API
+    // ENVIAR LINK PARA A API
     setLoading(true);
 
     try {
@@ -110,13 +121,12 @@ export default function Home() {
         platform: data.platform,
         url: data.url,
         metadata: data.metadata,
+        matches: data.matches ?? [],
       });
     } catch (error) {
       console.error(error);
 
-      setError(
-        "Não foi possível comunicar com o servidor."
-      );
+      setError("Não foi possível comunicar com o servidor.");
     } finally {
       setLoading(false);
     }
@@ -125,7 +135,6 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-[#121212] px-5 pb-28 text-white">
       <div className="mx-auto max-w-md">
-
         {/* CABEÇALHO */}
         <header className="flex items-center gap-3 py-7">
           <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#FF7A00] text-2xl font-bold text-black">
@@ -145,7 +154,6 @@ export default function Home() {
 
         {/* CARTÃO PRINCIPAL */}
         <section className="rounded-3xl border border-neutral-800 bg-[#1E1E1E] p-5 shadow-2xl shadow-black/30">
-
           <span className="inline-flex rounded-full bg-[#FF7A00]/15 px-3 py-1 text-xs font-semibold text-[#FF9B3D]">
             Partilha sem limites
           </span>
@@ -161,9 +169,8 @@ export default function Home() {
             mensagem.
           </p>
 
-          {/* SELETOR DE MODO */}
+          {/* SELETOR */}
           <div className="mt-6 grid grid-cols-2 gap-2 rounded-2xl bg-[#121212] p-1">
-
             <button
               type="button"
               onClick={() => changeMode("link")}
@@ -187,52 +194,34 @@ export default function Home() {
             >
               💬 Mensagem
             </button>
-
           </div>
 
           {/* FORMULÁRIO */}
-          <form
-            className="mt-5 space-y-3"
-            onSubmit={handleSubmit}
-          >
-
-            <label
-              htmlFor="main-input"
-              className="sr-only"
-            >
-              {mode === "link"
-                ? "Link musical"
-                : "Mensagem"}
+          <form className="mt-5 space-y-3" onSubmit={handleSubmit}>
+            <label htmlFor="main-input" className="sr-only">
+              {mode === "link" ? "Link musical" : "Mensagem"}
             </label>
 
             {mode === "link" ? (
-
               <input
                 id="main-input"
                 type="url"
                 value={input}
-                onChange={(event) =>
-                  setInput(event.target.value)
-                }
+                onChange={(event) => setInput(event.target.value)}
                 placeholder="https://www.youtube.com/watch?v=..."
                 disabled={loading}
                 className="h-14 w-full rounded-2xl border border-neutral-700 bg-[#121212] px-4 text-base text-white outline-none transition placeholder:text-neutral-600 focus:border-[#FF7A00] focus:ring-4 focus:ring-[#FF7A00]/10 disabled:opacity-50"
               />
-
             ) : (
-
               <textarea
                 id="main-input"
                 value={input}
-                onChange={(event) =>
-                  setInput(event.target.value)
-                }
+                onChange={(event) => setInput(event.target.value)}
                 placeholder="Escreve a tua mensagem..."
                 rows={5}
                 maxLength={500}
                 className="w-full resize-none rounded-2xl border border-neutral-700 bg-[#121212] p-4 text-base text-white outline-none transition placeholder:text-neutral-600 focus:border-[#FF7A00] focus:ring-4 focus:ring-[#FF7A00]/10"
               />
-
             )}
 
             {mode === "message" && (
@@ -252,7 +241,6 @@ export default function Home() {
                 ? "Encontrar plataformas"
                 : "Enviar mensagem"}
             </button>
-
           </form>
 
           {/* ERRO */}
@@ -264,11 +252,10 @@ export default function Home() {
             </div>
           )}
 
-          {/* RESULTADO DO LINK */}
+          {/* RESULTADO */}
           {result && (
             <div className="mt-5 overflow-hidden rounded-2xl border border-[#FF7A00]/20 bg-[#121212]">
-
-              {/* CAPA / THUMBNAIL */}
+              {/* THUMBNAIL ORIGINAL */}
               {result.metadata?.thumbnailUrl && (
                 <img
                   src={result.metadata.thumbnailUrl}
@@ -277,8 +264,8 @@ export default function Home() {
                 />
               )}
 
+              {/* MÚSICA ORIGINAL */}
               <div className="p-4">
-
                 <p className="text-xs font-medium uppercase tracking-wide text-[#FF9B3D]">
                   {result.platform}
                 </p>
@@ -309,15 +296,82 @@ export default function Home() {
                 <p className="mt-4 break-all text-xs leading-5 text-neutral-600">
                   {result.url}
                 </p>
-
               </div>
+
+              {/* EQUIVALENTES */}
+              {result.matches.length > 0 && (
+                <div className="border-t border-neutral-800 p-4">
+                  <p className="mb-3 text-xs font-medium uppercase tracking-wide text-neutral-500">
+                    Também disponível em
+                  </p>
+
+                  <div className="space-y-3">
+                    {result.matches.map((match) => (
+                      <a
+                        key={`${match.platform}-${match.url}`}
+                        href={match.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-3 rounded-xl border border-neutral-800 bg-[#1E1E1E] p-3 transition hover:border-[#FF7A00]/50"
+                      >
+                        {/* CAPA */}
+                        {match.thumbnailUrl && (
+                          <img
+                            src={match.thumbnailUrl}
+                            alt={match.title}
+                            className="h-16 w-16 shrink-0 rounded-lg object-cover"
+                          />
+                        )}
+
+                        {/* INFORMAÇÃO */}
+                        <div className="min-w-0 flex-1">
+                          <p className="text-xs font-semibold uppercase text-[#FF9B3D]">
+                            {match.platform}
+                          </p>
+
+                          <p className="truncate text-sm font-semibold text-white">
+                            {match.title}
+                          </p>
+
+                          <p className="truncate text-xs text-neutral-400">
+                            {match.artist}
+                          </p>
+
+                          {match.album && (
+                            <p className="truncate text-xs text-neutral-600">
+                              {match.album}
+                            </p>
+                          )}
+
+                          {/* SCORE TEMPORÁRIO */}
+                          <p className="mt-1 text-xs text-neutral-600">
+                            Correspondência: {match.score}%
+                          </p>
+                        </div>
+
+                        <span className="text-xl text-[#FF7A00]">
+                          →
+                        </span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* SEM MATCHES */}
+              {result.metadata && result.matches.length === 0 && (
+                <div className="border-t border-neutral-800 p-4">
+                  <p className="text-sm text-neutral-500">
+                    Ainda não encontrámos equivalentes noutras plataformas.
+                  </p>
+                </div>
+              )}
             </div>
           )}
 
-          {/* RESULTADO DA MENSAGEM */}
+          {/* MENSAGEM */}
           {messageResult && (
             <div className="mt-5 rounded-2xl border border-[#FF7A00]/20 bg-[#121212] p-4">
-
               <p className="text-xs font-medium uppercase tracking-wide text-neutral-500">
                 Mensagem
               </p>
@@ -329,15 +383,12 @@ export default function Home() {
               <p className="mt-3 text-xs font-medium text-[#FF9B3D]">
                 Mensagem preparada para envio.
               </p>
-
             </div>
           )}
-
         </section>
 
         {/* COMO FUNCIONA */}
         <section className="mt-8">
-
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-bold">
               Como funciona
@@ -349,10 +400,7 @@ export default function Home() {
           </div>
 
           <div className="space-y-3">
-
-            {/* PASSO 1 */}
             <article className="flex items-center gap-4 rounded-2xl bg-[#1E1E1E] p-4">
-
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#FF7A00]/15 font-bold text-[#FF9B3D]">
                 1
               </div>
@@ -366,31 +414,25 @@ export default function Home() {
                   Um link musical ou uma mensagem.
                 </p>
               </div>
-
             </article>
 
-            {/* PASSO 2 */}
             <article className="flex items-center gap-4 rounded-2xl bg-[#1E1E1E] p-4">
-
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#FF7A00]/15 font-bold text-[#FF9B3D]">
                 2
               </div>
 
               <div>
                 <h3 className="font-semibold">
-                  Identificamos
+                  Encontramos equivalentes
                 </h3>
 
                 <p className="text-sm text-neutral-400">
-                  O AudioTransporte trata automaticamente do conteúdo.
+                  Procuramos a mesma música noutras plataformas.
                 </p>
               </div>
-
             </article>
 
-            {/* PASSO 3 */}
             <article className="flex items-center gap-4 rounded-2xl bg-[#1E1E1E] p-4">
-
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#FF7A00]/15 font-bold text-[#FF9B3D]">
                 3
               </div>
@@ -404,19 +446,14 @@ export default function Home() {
                   Cada pessoa escolhe onde quer ouvir.
                 </p>
               </div>
-
             </article>
-
           </div>
         </section>
-
       </div>
 
       {/* MENU INFERIOR */}
       <nav className="fixed bottom-0 left-0 right-0 border-t border-neutral-800 bg-[#181818]/95 px-5 py-3 backdrop-blur">
-
         <div className="mx-auto flex max-w-md items-center justify-around">
-
           <button className="flex flex-col items-center gap-1 text-[#FF7A00]">
             <span className="text-xl">⌂</span>
             <span className="text-xs font-medium">
@@ -451,9 +488,7 @@ export default function Home() {
               Perfil
             </span>
           </button>
-
         </div>
-
       </nav>
     </main>
   );

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { detectPlatform } from "@/features/search/services/platformDetector";
 import { getYouTubeMetadata } from "@/features/search/services/youtubeService";
+import { searchDeezerTrack } from "@/features/search/services/deezerService";
 
 export async function POST(request: Request) {
   try {
@@ -31,7 +32,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // Detetar plataforma
+    // Detetar plataforma de origem
     const platform = detectPlatform(url);
 
     if (platform === "Unknown") {
@@ -44,28 +45,57 @@ export async function POST(request: Request) {
       );
     }
 
-    // YouTube / YouTube Music
+    // YOUTUBE / YOUTUBE MUSIC
     if (
       platform === "YouTube" ||
       platform === "YouTube Music"
     ) {
+      // Obter dados do vídeo
       const metadata = await getYouTubeMetadata(url);
+
+      let deezerMatch = null;
+
+      try {
+        // Primeira pesquisa de equivalente.
+        //
+        // Nesta fase usamos:
+        // authorName + title
+        //
+        // Mais tarde vamos melhorar a normalização
+        // e a comparação dos resultados.
+        deezerMatch = await searchDeezerTrack(
+          metadata.title,
+          metadata.authorName
+        );
+      } catch (error) {
+        // Uma falha no Deezer não deve impedir
+        // a resolução do conteúdo original.
+        console.error(
+          "Erro ao pesquisar no Deezer:",
+          error
+        );
+      }
 
       return NextResponse.json({
         success: true,
         platform,
         url,
         metadata,
+
+        matches: deezerMatch
+          ? [deezerMatch]
+          : [],
       });
     }
 
-    // Outras plataformas:
-    // por enquanto apenas identificamos a plataforma.
+    // OUTRAS PLATAFORMAS
+    // Por enquanto apenas identificamos a origem.
     return NextResponse.json({
       success: true,
       platform,
       url,
       metadata: null,
+      matches: [],
     });
   } catch (error) {
     console.error("Resolve API error:", error);
