@@ -1,37 +1,32 @@
-export type MusicPlatform =
+export type Platform =
   | "YouTube"
   | "YouTube Music"
   | "Spotify"
   | "TIDAL"
-  | "Apple Music"
   | "Amazon Music"
-  | "Deezer"
-  | "SoundCloud"
   | "Unknown";
 
-export function detectPlatform(url: string): MusicPlatform {
+export function detectPlatform(url: string): Platform {
   try {
     const parsedUrl = new URL(url);
+    const hostname = parsedUrl.hostname.toLowerCase();
 
-    const hostname = parsedUrl.hostname
-      .toLowerCase()
-      .replace(/^www\./, "");
-
-    // YouTube Music
+    // YOUTUBE MUSIC
     if (hostname === "music.youtube.com") {
       return "YouTube Music";
     }
 
-    // YouTube
+    // YOUTUBE
     if (
       hostname === "youtube.com" ||
-      hostname === "youtu.be" ||
-      hostname.endsWith(".youtube.com")
+      hostname === "www.youtube.com" ||
+      hostname === "m.youtube.com" ||
+      hostname === "youtu.be"
     ) {
       return "YouTube";
     }
 
-    // Spotify
+    // SPOTIFY
     if (
       hostname === "open.spotify.com" ||
       hostname === "spotify.com" ||
@@ -43,43 +38,26 @@ export function detectPlatform(url: string): MusicPlatform {
     // TIDAL
     if (
       hostname === "tidal.com" ||
+      hostname === "www.tidal.com" ||
       hostname === "listen.tidal.com" ||
       hostname.endsWith(".tidal.com")
     ) {
       return "TIDAL";
     }
 
-    // Apple Music
-    if (hostname === "music.apple.com") {
-      return "Apple Music";
-    }
-
-    // Amazon Music
+    // AMAZON MUSIC
     if (
       hostname === "music.amazon.com" ||
       hostname === "music.amazon.co.uk" ||
       hostname === "music.amazon.de" ||
       hostname === "music.amazon.es" ||
       hostname === "music.amazon.fr" ||
-      hostname === "music.amazon.it"
+      hostname === "music.amazon.it" ||
+      hostname === "music.amazon.ca" ||
+      hostname === "music.amazon.com.au" ||
+      hostname.endsWith(".music.amazon.com")
     ) {
       return "Amazon Music";
-    }
-
-    // Deezer
-    if (
-      hostname === "deezer.com" ||
-      hostname.endsWith(".deezer.com")
-    ) {
-      return "Deezer";
-    }
-
-    // SoundCloud
-    if (
-      hostname === "soundcloud.com" ||
-      hostname === "on.soundcloud.com"
-    ) {
-      return "SoundCloud";
     }
 
     return "Unknown";

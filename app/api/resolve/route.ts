@@ -2,25 +2,32 @@ import { NextResponse } from "next/server";
 
 import { detectPlatform } from "@/features/search/services/platformDetector";
 import { getYouTubeMetadata } from "@/features/search/services/youtubeService";
-import { searchDeezerTrack } from "@/features/search/services/deezerService";
-import { searchSpotifyTrack } from "@/features/search/services/spotifyService";
+
+import {
+  getSpotifyTrackMetadata,
+  searchSpotifyTrack,
+} from "@/features/search/services/spotifyService";
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+
     const { url } = body;
 
+    // VALIDAR URL
     if (!url || typeof url !== "string") {
       return NextResponse.json(
         {
           success: false,
           error: "É necessário indicar um URL.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
-    // Validar URL
+    // VALIDAR FORMATO
     try {
       new URL(url);
     } catch {
@@ -29,52 +36,49 @@ export async function POST(request: Request) {
           success: false,
           error: "O URL introduzido não é válido.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
-    // Detetar plataforma de origem
+    // DETETAR PLATAFORMA
     const platform = detectPlatform(url);
 
     if (platform === "Unknown") {
       return NextResponse.json(
         {
           success: false,
-          error: "Esta plataforma ainda não é suportada.",
+          error:
+            "Este link não pertence a uma plataforma suportada.",
         },
-        { status: 400 }
+        {
+          status: 400,
+        }
       );
     }
 
-    // YOUTUBE / YOUTUBE MUSIC
+    /*
+      ==================================================
+      YOUTUBE / YOUTUBE MUSIC
+      ==================================================
+    */
+
     if (
       platform === "YouTube" ||
       platform === "YouTube Music"
     ) {
-      const metadata = await getYouTubeMetadata(url);
+      const metadata =
+        await getYouTubeMetadata(url);
 
-      let deezerMatch = null;
       let spotifyMatch = null;
 
-      // PESQUISA DEEZER
       try {
-        deezerMatch = await searchDeezerTrack(
-          metadata.title,
-          metadata.authorName
-        );
-      } catch (error) {
-        console.error(
-          "Erro ao pesquisar no Deezer:",
-          error
-        );
-      }
-
-      // PESQUISA SPOTIFY
-      try {
-        spotifyMatch = await searchSpotifyTrack(
-          metadata.title,
-          metadata.authorName
-        );
+        spotifyMatch =
+          await searchSpotifyTrack(
+            metadata.title,
+            metadata.authorName
+          );
       } catch (error) {
         console.error(
           "Erro ao pesquisar no Spotify:",
@@ -83,7 +87,6 @@ export async function POST(request: Request) {
       }
 
       const matches = [
-        deezerMatch,
         spotifyMatch,
       ].filter(
         (match) => match !== null
@@ -91,20 +94,106 @@ export async function POST(request: Request) {
 
       return NextResponse.json({
         success: true,
+
         platform,
+
         url,
+
         metadata,
+
         matches,
       });
     }
 
-    // OUTRAS PLATAFORMAS
-    // Para já apenas identificamos a plataforma.
+    /*
+      ==================================================
+      SPOTIFY
+      ==================================================
+    */
+
+    if (platform === "Spotify") {
+      const metadata =
+        await getSpotifyTrackMetadata(url);
+
+      /*
+        Neste momento ainda não temos
+        pesquisa TIDAL/Amazon implementada.
+
+        Quando esses serviços estiverem prontos,
+        serão adicionados a este array.
+      */
+
+      return NextResponse.json({
+        success: true,
+
+        platform,
+
+        url,
+
+        metadata,
+
+        matches: [],
+      });
+    }
+
+    /*
+      ==================================================
+      TIDAL
+      ==================================================
+
+      Plataforma reconhecida.
+
+      A obtenção de metadata e pesquisa será
+      implementada no próximo módulo.
+    */
+
+    if (platform === "TIDAL") {
+      return NextResponse.json({
+        success: true,
+
+        platform,
+
+        url,
+
+        metadata: null,
+
+        matches: [],
+      });
+    }
+
+    /*
+      ==================================================
+      AMAZON MUSIC
+      ==================================================
+
+      Plataforma reconhecida.
+
+      A integração será implementada posteriormente.
+    */
+
+    if (platform === "Amazon Music") {
+      return NextResponse.json({
+        success: true,
+
+        platform,
+
+        url,
+
+        metadata: null,
+
+        matches: [],
+      });
+    }
+
     return NextResponse.json({
       success: true,
+
       platform,
+
       url,
+
       metadata: null,
+
       matches: [],
     });
   } catch (error) {
@@ -113,13 +202,19 @@ export async function POST(request: Request) {
       error
     );
 
+    const message =
+      error instanceof Error
+        ? error.message
+        : "Não foi possível processar este conteúdo.";
+
     return NextResponse.json(
       {
         success: false,
-        error:
-          "Não foi possível processar este conteúdo.",
+        error: message,
       },
-      { status: 500 }
+      {
+        status: 500,
+      }
     );
   }
 }
