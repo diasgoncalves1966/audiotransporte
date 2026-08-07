@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { detectPlatform } from "@/features/search/services/platformDetector";
 import { getYouTubeMetadata } from "@/features/search/services/youtubeService";
 import { searchDeezerTrack } from "@/features/search/services/deezerService";
+import { searchSpotifyTrack } from "@/features/search/services/spotifyService";
 
 export async function POST(request: Request) {
   try {
@@ -50,46 +51,55 @@ export async function POST(request: Request) {
       platform === "YouTube" ||
       platform === "YouTube Music"
     ) {
-      // Obter dados do vídeo
       const metadata = await getYouTubeMetadata(url);
 
       let deezerMatch = null;
+      let spotifyMatch = null;
 
+      // PESQUISA DEEZER
       try {
-        // Primeira pesquisa de equivalente.
-        //
-        // Nesta fase usamos:
-        // authorName + title
-        //
-        // Mais tarde vamos melhorar a normalização
-        // e a comparação dos resultados.
         deezerMatch = await searchDeezerTrack(
           metadata.title,
           metadata.authorName
         );
       } catch (error) {
-        // Uma falha no Deezer não deve impedir
-        // a resolução do conteúdo original.
         console.error(
           "Erro ao pesquisar no Deezer:",
           error
         );
       }
 
+      // PESQUISA SPOTIFY
+      try {
+        spotifyMatch = await searchSpotifyTrack(
+          metadata.title,
+          metadata.authorName
+        );
+      } catch (error) {
+        console.error(
+          "Erro ao pesquisar no Spotify:",
+          error
+        );
+      }
+
+      const matches = [
+        deezerMatch,
+        spotifyMatch,
+      ].filter(
+        (match) => match !== null
+      );
+
       return NextResponse.json({
         success: true,
         platform,
         url,
         metadata,
-
-        matches: deezerMatch
-          ? [deezerMatch]
-          : [],
+        matches,
       });
     }
 
     // OUTRAS PLATAFORMAS
-    // Por enquanto apenas identificamos a origem.
+    // Para já apenas identificamos a plataforma.
     return NextResponse.json({
       success: true,
       platform,
@@ -98,12 +108,16 @@ export async function POST(request: Request) {
       matches: [],
     });
   } catch (error) {
-    console.error("Resolve API error:", error);
+    console.error(
+      "Resolve API error:",
+      error
+    );
 
     return NextResponse.json(
       {
         success: false,
-        error: "Não foi possível processar este conteúdo.",
+        error:
+          "Não foi possível processar este conteúdo.",
       },
       { status: 500 }
     );
