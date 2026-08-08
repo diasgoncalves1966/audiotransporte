@@ -29,6 +29,7 @@ type LinkResult = {
   url: string;
   metadata?: Metadata | null;
   matches: PlatformMatch[];
+  universalUrl?: string;
 };
 
 type ResolveResponse = {
@@ -37,6 +38,7 @@ type ResolveResponse = {
   url?: string;
   metadata?: Metadata | null;
   matches?: PlatformMatch[];
+  universalUrl?: string;
   error?: string;
 };
 
@@ -95,9 +97,9 @@ export default function Home() {
       return;
     }
 
-    /*
-      MODO MENSAGEM
-    */
+    // ==============================
+    // MODO MENSAGEM
+    // ==============================
 
     if (mode === "message") {
       setMessageResult(
@@ -107,9 +109,9 @@ export default function Home() {
       return;
     }
 
-    /*
-      VALIDAR URL
-    */
+    // ==============================
+    // VALIDAR URL
+    // ==============================
 
     try {
       new URL(cleanInput);
@@ -121,9 +123,9 @@ export default function Home() {
       return;
     }
 
-    /*
-      API
-    */
+    // ==============================
+    // API
+    // ==============================
 
     setLoading(true);
 
@@ -183,6 +185,9 @@ export default function Home() {
 
         matches:
           data.matches ?? [],
+
+        universalUrl:
+          data.universalUrl,
       });
     } catch (error) {
       console.error(error);
@@ -199,7 +204,9 @@ export default function Home() {
     <main className="min-h-screen bg-[#121212] px-5 pb-28 text-white">
       <div className="mx-auto max-w-md">
 
-        {/* HEADER */}
+        {/* ==============================
+            HEADER
+        ============================== */}
 
         <header className="flex items-center gap-3 py-7">
 
@@ -219,7 +226,9 @@ export default function Home() {
 
         </header>
 
-        {/* CARTÃO */}
+        {/* ==============================
+            CARTÃO PRINCIPAL
+        ============================== */}
 
         <section className="rounded-3xl border border-neutral-800 bg-[#1E1E1E] p-5 shadow-2xl shadow-black/30">
 
@@ -237,7 +246,9 @@ export default function Home() {
             YouTube, Spotify, TIDAL e Amazon Music.
           </p>
 
-          {/* MODOS */}
+          {/* ==============================
+              SELETOR DE MODO
+          ============================== */}
 
           <div className="mt-6 grid grid-cols-2 gap-2 rounded-2xl bg-[#121212] p-1">
 
@@ -274,7 +285,9 @@ export default function Home() {
 
           </div>
 
-          {/* FORM */}
+          {/* ==============================
+              FORMULÁRIO
+          ============================== */}
 
           <form
             className="mt-5 space-y-3"
@@ -299,7 +312,7 @@ export default function Home() {
                 disabled={
                   loading
                 }
-                className="h-14 w-full rounded-2xl border border-neutral-700 bg-[#121212] px-4 text-base text-white outline-none placeholder:text-neutral-600 focus:border-[#FF7A00]"
+                className="h-14 w-full rounded-2xl border border-neutral-700 bg-[#121212] px-4 text-base text-white outline-none transition placeholder:text-neutral-600 focus:border-[#FF7A00] focus:ring-4 focus:ring-[#FF7A00]/10 disabled:opacity-50"
               />
             ) : (
               <textarea
@@ -315,7 +328,7 @@ export default function Home() {
                 placeholder="Escreve a tua mensagem..."
                 rows={5}
                 maxLength={500}
-                className="w-full resize-none rounded-2xl border border-neutral-700 bg-[#121212] p-4 text-base text-white outline-none placeholder:text-neutral-600 focus:border-[#FF7A00]"
+                className="w-full resize-none rounded-2xl border border-neutral-700 bg-[#121212] p-4 text-base text-white outline-none transition placeholder:text-neutral-600 focus:border-[#FF7A00] focus:ring-4 focus:ring-[#FF7A00]/10"
               />
             )}
 
@@ -334,7 +347,7 @@ export default function Home() {
               disabled={
                 loading
               }
-              className="h-14 w-full rounded-2xl bg-[#FF7A00] font-bold text-black transition hover:bg-[#FF8A1F] disabled:opacity-50"
+              className="h-14 w-full rounded-2xl bg-[#FF7A00] font-bold text-black transition hover:bg-[#FF8A1F] active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50"
             >
               {loading
                 ? "A procurar..."
@@ -346,20 +359,26 @@ export default function Home() {
 
           </form>
 
-          {/* ERRO */}
+          {/* ==============================
+              ERRO
+          ============================== */}
 
           {error && (
             <div className="mt-5 rounded-2xl border border-red-500/20 bg-red-500/10 p-4">
-              <p className="text-sm text-red-400">
+              <p className="text-sm font-medium text-red-400">
                 {error}
               </p>
             </div>
           )}
 
-          {/* RESULTADO */}
+          {/* ==============================
+              RESULTADO
+          ============================== */}
 
           {result && (
             <div className="mt-5 overflow-hidden rounded-2xl border border-[#FF7A00]/20 bg-[#121212]">
+
+              {/* CAPA */}
 
               {result.metadata
                 ?.thumbnailUrl && (
@@ -383,9 +402,11 @@ export default function Home() {
                 />
               )}
 
+              {/* DADOS DA ORIGEM */}
+
               <div className="p-4">
 
-                <p className="text-xs font-semibold uppercase text-[#FF9B3D]">
+                <p className="text-xs font-semibold uppercase tracking-wide text-[#FF9B3D]">
                   {
                     result.platform
                   }
@@ -393,7 +414,7 @@ export default function Home() {
 
                 {result.metadata ? (
                   <>
-                    <h3 className="mt-2 text-lg font-bold">
+                    <h3 className="mt-2 text-lg font-bold leading-snug">
                       {
                         result
                           .metadata
@@ -424,30 +445,57 @@ export default function Home() {
                 ) : (
                   <>
                     <p className="mt-2 text-sm text-neutral-300">
-                      Plataforma
-                      identificada.
+                      Plataforma identificada.
                     </p>
 
-                    <p className="mt-1 text-xs text-neutral-500">
-                      A integração
-                      desta
-                      plataforma será
-                      adicionada em
-                      breve.
-                    </p>
+                    {result.platform ===
+                    "TIDAL" ? (
+                      <p className="mt-1 text-xs leading-5 text-neutral-500">
+                        Usa a página universal do TIDAL para ver esta música noutras plataformas.
+                      </p>
+                    ) : (
+                      <p className="mt-1 text-xs leading-5 text-neutral-500">
+                        A integração desta plataforma será adicionada posteriormente.
+                      </p>
+                    )}
                   </>
                 )}
 
+                {/* URL ORIGINAL */}
+
+                <p className="mt-4 break-all text-xs leading-5 text-neutral-600">
+                  {result.url}
+                </p>
+
+                {/* TIDAL UNIVERSAL LINK */}
+
+                {result.platform ===
+                  "TIDAL" &&
+                  result.universalUrl && (
+                    <a
+                      href={
+                        result.universalUrl
+                      }
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-4 flex h-14 w-full items-center justify-center rounded-2xl bg-[#FF7A00] px-4 text-center text-sm font-bold text-black transition hover:bg-[#FF8A1F] active:scale-[0.98]"
+                    >
+                      Ver noutras plataformas
+                    </a>
+                  )}
+
               </div>
 
-              {/* MATCHES */}
+              {/* ==============================
+                  MATCHES
+              ============================== */}
 
               {result.matches
                 .length >
                 0 && (
                 <div className="border-t border-neutral-800 p-4">
 
-                  <p className="mb-3 text-xs uppercase text-neutral-500">
+                  <p className="mb-3 text-xs font-medium uppercase tracking-wide text-neutral-500">
                     Também disponível em
                   </p>
 
@@ -464,7 +512,7 @@ export default function Home() {
                           }
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="flex items-center gap-3 rounded-xl border border-neutral-800 bg-[#1E1E1E] p-3 hover:border-[#FF7A00]/50"
+                          className="flex items-center gap-3 rounded-xl border border-neutral-800 bg-[#1E1E1E] p-3 transition hover:border-[#FF7A00]/50"
                         >
 
                           {match.thumbnailUrl && (
@@ -475,7 +523,7 @@ export default function Home() {
                               alt={
                                 match.title
                               }
-                              className="h-16 w-16 rounded-lg object-cover"
+                              className="h-16 w-16 shrink-0 rounded-lg object-cover"
                             />
                           )}
 
@@ -487,25 +535,39 @@ export default function Home() {
                               }
                             </p>
 
-                            <p className="truncate text-sm font-semibold">
-                              {
-                                match.title
-                              }
-                            </p>
+                            {match.title && (
+                              <p className="truncate text-sm font-semibold text-white">
+                                {
+                                  match.title
+                                }
+                              </p>
+                            )}
 
-                            <p className="truncate text-xs text-neutral-400">
-                              {
-                                match.artist
-                              }
-                            </p>
+                            {match.artist && (
+                              <p className="truncate text-xs text-neutral-400">
+                                {
+                                  match.artist
+                                }
+                              </p>
+                            )}
 
-                            <p className="mt-1 text-xs text-neutral-600">
-                              Correspondência:{" "}
-                              {
-                                match.score
-                              }
-                              %
-                            </p>
+                            {match.album && (
+                              <p className="truncate text-xs text-neutral-600">
+                                {
+                                  match.album
+                                }
+                              </p>
+                            )}
+
+                            {match.score > 0 && (
+                              <p className="mt-1 text-xs text-neutral-600">
+                                Correspondência:{" "}
+                                {
+                                  match.score
+                                }
+                                %
+                              </p>
+                            )}
 
                           </div>
 
@@ -524,19 +586,25 @@ export default function Home() {
             </div>
           )}
 
-          {/* MENSAGEM */}
+          {/* ==============================
+              MENSAGEM
+          ============================== */}
 
           {messageResult && (
             <div className="mt-5 rounded-2xl border border-[#FF7A00]/20 bg-[#121212] p-4">
 
-              <p className="text-xs uppercase text-neutral-500">
+              <p className="text-xs font-medium uppercase tracking-wide text-neutral-500">
                 Mensagem
               </p>
 
-              <p className="mt-3 whitespace-pre-wrap text-sm leading-6">
+              <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-neutral-200">
                 {
                   messageResult
                 }
+              </p>
+
+              <p className="mt-3 text-xs font-medium text-[#FF9B3D]">
+                Mensagem preparada para envio.
               </p>
 
             </div>
@@ -544,19 +612,23 @@ export default function Home() {
 
         </section>
 
-        {/* PLATAFORMAS */}
+        {/* ==============================
+            PLATAFORMAS
+        ============================== */}
 
         <section className="mt-8">
 
-          <h2 className="text-lg font-bold">
-            Plataformas
-          </h2>
+          <div className="mb-4">
+            <h2 className="text-lg font-bold">
+              Plataformas
+            </h2>
 
-          <p className="mt-1 text-sm text-neutral-500">
-            O AudioTransporte está a ser preparado para:
-          </p>
+            <p className="mt-1 text-sm text-neutral-500">
+              Plataformas atualmente consideradas pelo AudioTransporte.
+            </p>
+          </div>
 
-          <div className="mt-4 grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-3">
 
             {[
               "YouTube",

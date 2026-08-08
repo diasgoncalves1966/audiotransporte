@@ -8,13 +8,17 @@ import {
   searchSpotifyTrack,
 } from "@/features/search/services/spotifyService";
 
+import {
+  getTidalUniversalLink,
+} from "@/features/search/services/tidalService";
+
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-
     const { url } = body;
 
     // VALIDAR URL
+
     if (!url || typeof url !== "string") {
       return NextResponse.json(
         {
@@ -27,7 +31,6 @@ export async function POST(request: Request) {
       );
     }
 
-    // VALIDAR FORMATO
     try {
       new URL(url);
     } catch {
@@ -43,7 +46,14 @@ export async function POST(request: Request) {
     }
 
     // DETETAR PLATAFORMA
-    const platform = detectPlatform(url);
+
+    const platform =
+      detectPlatform(url);
+
+    console.log(
+      "Plataforma detetada:",
+      platform
+    );
 
     if (platform === "Unknown") {
       return NextResponse.json(
@@ -58,11 +68,9 @@ export async function POST(request: Request) {
       );
     }
 
-    /*
-      ==================================================
-      YOUTUBE / YOUTUBE MUSIC
-      ==================================================
-    */
+    // ==================================================
+    // YOUTUBE / YOUTUBE MUSIC
+    // ==================================================
 
     if (
       platform === "YouTube" ||
@@ -86,10 +94,53 @@ export async function POST(request: Request) {
         );
       }
 
-      const matches = [
-        spotifyMatch,
-      ].filter(
-        (match) => match !== null
+      return NextResponse.json({
+        success: true,
+        platform,
+        url,
+        metadata,
+
+        matches: spotifyMatch
+          ? [spotifyMatch]
+          : [],
+      });
+    }
+
+    // ==================================================
+    // SPOTIFY
+    // ==================================================
+
+    if (platform === "Spotify") {
+      const metadata =
+        await getSpotifyTrackMetadata(
+          url
+        );
+
+      console.log(
+        "Spotify metadata:",
+        metadata
+      );
+
+      return NextResponse.json({
+        success: true,
+        platform,
+        url,
+        metadata,
+        matches: [],
+      });
+    }
+
+    // ==================================================
+    // TIDAL
+    // ==================================================
+
+    if (platform === "TIDAL") {
+      const tidal =
+        getTidalUniversalLink(url);
+
+      console.log(
+        "TIDAL universal link:",
+        tidal.universalUrl
       );
 
       return NextResponse.json({
@@ -97,103 +148,40 @@ export async function POST(request: Request) {
 
         platform,
 
-        url,
-
-        metadata,
-
-        matches,
-      });
-    }
-
-    /*
-      ==================================================
-      SPOTIFY
-      ==================================================
-    */
-
-    if (platform === "Spotify") {
-      const metadata =
-        await getSpotifyTrackMetadata(url);
-
-      /*
-        Neste momento ainda não temos
-        pesquisa TIDAL/Amazon implementada.
-
-        Quando esses serviços estiverem prontos,
-        serão adicionados a este array.
-      */
-
-      return NextResponse.json({
-        success: true,
-
-        platform,
-
-        url,
-
-        metadata,
-
-        matches: [],
-      });
-    }
-
-    /*
-      ==================================================
-      TIDAL
-      ==================================================
-
-      Plataforma reconhecida.
-
-      A obtenção de metadata e pesquisa será
-      implementada no próximo módulo.
-    */
-
-    if (platform === "TIDAL") {
-      return NextResponse.json({
-        success: true,
-
-        platform,
-
-        url,
+        url:
+          tidal.originalUrl,
 
         metadata: null,
 
         matches: [],
+
+        universalUrl:
+          tidal.universalUrl,
       });
     }
 
-    /*
-      ==================================================
-      AMAZON MUSIC
-      ==================================================
+    // ==================================================
+    // AMAZON MUSIC
+    // ==================================================
 
-      Plataforma reconhecida.
-
-      A integração será implementada posteriormente.
-    */
-
-    if (platform === "Amazon Music") {
+    if (
+      platform ===
+      "Amazon Music"
+    ) {
       return NextResponse.json({
         success: true,
-
         platform,
-
         url,
-
         metadata: null,
-
         matches: [],
       });
     }
 
     return NextResponse.json({
       success: true,
-
       platform,
-
       url,
-
       metadata: null,
-
       matches: [],
     });
   } catch (error) {
